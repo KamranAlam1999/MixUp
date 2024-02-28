@@ -2,6 +2,7 @@ package com.gerardbradshaw.v2mixup.ui.editor
 
 import android.app.Activity.RESULT_OK
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -46,7 +47,6 @@ class EditorFragment :
   private var lastImageClickedIndex: Int = -1
 
 
-
   // ------------------------ INITIALIZATION ------------------------
 
   override fun onCreateView(
@@ -74,6 +74,7 @@ class EditorFragment :
     initBorderColorPicker()
 
     viewModel.canvasAspectRatio.observe(requireActivity(), Observer { onAspectRatioChange(it) })
+
   }
 
   private fun initTools() {
@@ -106,14 +107,17 @@ class EditorFragment :
       attrs = null,
       layoutWidth = collageViewContainer.width,
       layoutHeight = collageViewContainer.height,
-      isBorderEnabled = false,
-      imageUris = viewModel.imageUris)
+      isBorderEnabled = true,
+      imageUris = viewModel.imageUris
+    )
   }
 
   private fun initDefaultCollageView() {
     collageView = collageViewFactory.getView(CollageViewFactory.CollageLayoutType.THREE_IMAGE_2)
     collageViewContainer.addView(collageView)
     collageView.setImageClickListener(this)
+
+    collageView.setBorderColor(Color.BLACK)
   }
 
   private fun initOptionsButtons() {
@@ -139,13 +143,11 @@ class EditorFragment :
     if (hideColorPicker) {
       colorPickerContainer.visibility = View.GONE
       recyclerView.visibility = View.VISIBLE
-    }
-    else {
+    } else {
       colorPickerContainer.visibility = View.VISIBLE
       recyclerView.visibility = View.GONE
     }
   }
-
 
 
   // ------------------------ COLLAGE ------------------------
@@ -162,7 +164,8 @@ class EditorFragment :
     recyclerView.adapter = adapter
 
     recyclerView.layoutManager = LinearLayoutManager(
-      requireContext(), LinearLayoutManager.HORIZONTAL, false)
+      requireContext(), LinearLayoutManager.HORIZONTAL, false
+    )
 
     setIsColorPickerHidden(true)
   }
@@ -181,7 +184,6 @@ class EditorFragment :
   }
 
 
-
   // ------------------------ ASPECT RATIO ------------------------
 
   private fun showAspectRatiosInRecycler() {
@@ -191,8 +193,8 @@ class EditorFragment :
       .setButtonClickedListener(object : AspectRatioListAdapter.AspectRatioButtonClickedListener {
         override fun onAspectRatioButtonClicked(newRatio: Float) {
           viewModel.setAspectRatio(newRatio)
-      }
-    })
+        }
+      })
 
     recyclerView.adapter = adapter
 
@@ -200,7 +202,8 @@ class EditorFragment :
       LinearLayoutManager(
         requireView().context,
         LinearLayoutManager.HORIZONTAL,
-        false)
+        false
+      )
 
     setIsColorPickerHidden(true)
   }
@@ -217,7 +220,6 @@ class EditorFragment :
   }
 
 
-
   // ------------------------ BORDER ------------------------
 
   private fun showBorderOptions() {
@@ -229,7 +231,6 @@ class EditorFragment :
     if (!borderSwitch.isChecked) borderSwitch.isChecked = true
     collageView.setBorderColor(color)
   }
-
 
 
   // ------------------------ IMPORTING IMAGES ------------------------
@@ -245,6 +246,7 @@ class EditorFragment :
       REQUEST_IMAGE_IMPORT_CODE -> {
         if (resultCode == RESULT_OK && data != null) onImageImported(data)
       }
+
       else -> {
         super.onActivityResult(requestCode, resultCode, data)
       }
@@ -258,8 +260,7 @@ class EditorFragment :
     if (collageView.childCount > lastImageClickedIndex) {
       collageView.setImageAt(lastImageClickedIndex, uri)
       lastImageClickedIndex = -1
-    }
-    else Log.d(TAG, "onImageImported: Selected TouchImageView no longer exists")
+    } else Log.d(TAG, "onImageImported: Selected TouchImageView no longer exists")
   }
 
   override fun onClick(view: View?) {
