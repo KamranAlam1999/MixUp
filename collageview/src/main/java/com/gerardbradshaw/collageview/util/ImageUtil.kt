@@ -81,7 +81,6 @@ class ImageUtil constructor(
   }
 
 
-
   // -------------------- SAVING --------------------
 
   /**
@@ -114,8 +113,7 @@ class ImageUtil constructor(
 
     return if (android.os.Build.VERSION.SDK_INT >= 29) {
       saveBitmapToGalleryAndroidQ(context, bitmap, getFilename(), folderName)
-    }
-    else {
+    } else {
       saveBitmapToGalleryAndroidM(context, bitmap, getFilename(), folderName)
     }
   }
@@ -181,7 +179,6 @@ class ImageUtil constructor(
   }
 
 
-
   // -------------------- UTIL --------------------
 
   private fun createBitmapFrom(view: View): Bitmap {
@@ -229,12 +226,11 @@ class ImageUtil constructor(
   }
 
 
-
   // -------------------- PERMISSION CHECKS --------------------
 
   private fun requestStoragePermission(activity: Activity) {
-    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-      val requiredPermission = Manifest.permission.WRITE_EXTERNAL_STORAGE
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+      val requiredPermission = Manifest.permission.READ_MEDIA_IMAGES
 
       val shouldRequestPermission =
         activity.checkSelfPermission(requiredPermission) != PackageManager.PERMISSION_GRANTED
@@ -244,10 +240,30 @@ class ImageUtil constructor(
           Toast.makeText(
             activity,
             "Storage permission is needed to save to gallery.",
-            Toast.LENGTH_LONG).show()
+            Toast.LENGTH_LONG
+          ).show()
         }
         val storagePermissions = arrayOf(requiredPermission)
         activity.requestPermissions(storagePermissions, 1)
+      }
+    } else {
+      if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+        val requiredPermission = Manifest.permission.WRITE_EXTERNAL_STORAGE
+
+        val shouldRequestPermission =
+          activity.checkSelfPermission(requiredPermission) != PackageManager.PERMISSION_GRANTED
+
+        if (shouldRequestPermission) {
+          if (activity.shouldShowRequestPermissionRationale(requiredPermission)) {
+            Toast.makeText(
+              activity,
+              "Storage permission is needed to save to gallery.",
+              Toast.LENGTH_LONG
+            ).show()
+          }
+          val storagePermissions = arrayOf(requiredPermission)
+          activity.requestPermissions(storagePermissions, 1)
+        }
       }
     }
   }
@@ -256,6 +272,16 @@ class ImageUtil constructor(
     activity: Activity,
     listener: ImageSavedListener
   ): Boolean {
+
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+      val requiredPermission = Manifest.permission.READ_MEDIA_IMAGES
+
+      if (activity.checkSelfPermission(requiredPermission) == PackageManager.PERMISSION_DENIED) {
+        Log.d(TAG, "Save to gallery failed. Permission denied.")
+        listener.onCollageSavedToGallery(false, null)
+        return false
+      }
+    }
     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
       val requiredPermission = Manifest.permission.WRITE_EXTERNAL_STORAGE
 
